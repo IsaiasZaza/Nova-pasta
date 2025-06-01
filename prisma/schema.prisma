@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://eae_owner:npg_AEg2D3CZWkGI@ep-small-moon-a8qcu1xr-pooler.eastus2.azure.neon.tech/eae?sslmode=require"
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  name       String
+  Senha      String
+  cpf        String   @unique
+  phone      String
+  email      String   @unique
+  cep        String
+  street     String
+  number     String
+  complement String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Produto {
+  id         Int      @id @default(autoincrement())
+  nome       String
+  price      Float
+  quantidade Int
+  image      String?
+}
