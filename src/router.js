@@ -14,6 +14,13 @@ const {
     deleteProduto
 } = require('./controller/produtoController');
 
+const {
+    createCupom,
+    getCupons,
+    getCupomById,
+    validarCupom
+} = require('./controller/cupomController');
+
 
 const express = require('express');
 const router = express.Router();
@@ -124,5 +131,47 @@ router.delete('/products/:id', async (req, res) => {
     }
 });
 
+// Criar cupom
+router.post('/coupons', async (req, res) => {
+    try {
+        const { codigo, valor, expiracao, tipo } = req.body;
+        const { status, data } = await createCupom({ codigo, valor, expiracao, tipo });
+        res.status(status).json(data);
+    } catch (error) {
+        console.error('Erro ao criar cupom:', error);
+        res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+});
+
+router.get('/coupons', async (req, res) => {
+    try {
+        const { status, data } = await getCupons();
+        res.status(status).json(data);
+    } catch (error) {
+        console.error('Erro ao buscar cupons:', error);
+        res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+});
+
+router.get('/coupons/:id', async (req, res) => {
+    try {
+        const { status, data } = await getCupomById({ id: req.params.id });
+        res.status(status).json(data);
+    } catch (error) {
+        console.error('Erro ao buscar cupom por ID:', error);
+        res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+});
+
+router.post('/coupons/validate', async (req, res) => {
+    try {
+        const { codigo } = req.body;
+        const { status, data } = await validarCupom({ codigo });
+        res.status(status).json(data);
+    } catch (error) {
+        console.error('Erro ao validar cupom:', error);
+        res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+});
 
 module.exports = router;

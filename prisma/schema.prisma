@@ -1,3 +1,12 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:cTQFt5T86kFmvCE@@db.tbusedmcbhcawogwdqcn.supabase.co:5432/postgres"
+}
+
 model User {
   id         Int         @id @default(autoincrement())
   name       String
@@ -26,13 +35,15 @@ model Produto {
 }
 
 model Carrinho {
-  id        Int         @id @default(autoincrement())
-  userId    Int
-  user      User        @relation(fields: [userId], references: [id])
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id         Int         @id @default(autoincrement())
+  userId     Int
+  user       User        @relation(fields: [userId], references: [id])
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
-  items     CartItem[]
+  cupomId    Int?
+  cupom      Cupom?      @relation(fields: [cupomId], references: [id])
+  items      CartItem[]
 }
 
 model CartItem {
@@ -43,4 +54,22 @@ model CartItem {
 
   carrinho   Carrinho @relation(fields: [carrinhoId], references: [id])
   produto    Produto  @relation(fields: [produtoId], references: [id])
+}
+
+model Cupom {
+  id         Int         @id @default(autoincrement())
+  codigo     String      @unique
+  tipo       TipoDesconto
+  valor      Float
+  expiracao  DateTime
+  usado      Boolean     @default(false)
+  carrinhos  Carrinho[]  // Carrinhos que usaram esse cupom (opcional)
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+enum TipoDesconto {
+  PORCENTAGEM
+  VALOR_FIXO
 }
