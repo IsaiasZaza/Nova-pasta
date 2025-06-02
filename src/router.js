@@ -174,7 +174,4 @@ router.post('/coupons/validate', async (req, res) => {
     }
 });
 
-router.test('/test', (req, res) => {
-    res.status(200).json({ message: 'API is workingeeeeae!' });
-});
 module.exports = router;
