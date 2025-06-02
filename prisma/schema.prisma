@@ -4,69 +4,69 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://postgres:cTQFt5T86kFmvCE@@db.tbusedmcbhcawogwdqcn.supabase.co:6543/postgres?sslmode=require"
+  url      = "postgresql://postgres:cTQFt5T86kFmvCE@@db.tbusedmcbhcawogwdqcn.supabase.co:5432/postgres?sslmode=require"
 }
 
 model User {
-  id         Int         @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   name       String
   senha      String
-  cpf        String      @unique
+  cpf        String   @unique
   phone      String
-  email      String      @unique
+  email      String   @unique
   cep        String
   street     String
   number     String
   complement String?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  carrinhos  Carrinho[]
+  carrinhos Carrinho[]
 }
 
 model Produto {
-  id         Int         @id @default(autoincrement())
+  id         Int     @id @default(autoincrement())
   nome       String
   price      Float
   quantidade Int
   image      String?
 
-  cartItems  CartItem[]
+  cartItems CartItem[]
 }
 
 model Carrinho {
-  id         Int         @id @default(autoincrement())
-  userId     Int
-  user       User        @relation(fields: [userId], references: [id])
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  cupomId    Int?
-  cupom      Cupom?      @relation(fields: [cupomId], references: [id])
-  items      CartItem[]
+  cupomId Int?
+  cupom   Cupom?     @relation(fields: [cupomId], references: [id])
+  items   CartItem[]
 }
 
 model CartItem {
-  id         Int      @id @default(autoincrement())
+  id         Int @id @default(autoincrement())
   carrinhoId Int
   produtoId  Int
-  quantidade Int      @default(1)
+  quantidade Int @default(1)
 
-  carrinho   Carrinho @relation(fields: [carrinhoId], references: [id])
-  produto    Produto  @relation(fields: [produtoId], references: [id])
+  carrinho Carrinho @relation(fields: [carrinhoId], references: [id])
+  produto  Produto  @relation(fields: [produtoId], references: [id])
 }
 
 model Cupom {
-  id         Int         @id @default(autoincrement())
-  codigo     String      @unique
-  tipo       TipoDesconto
-  valor      Float
-  expiracao  DateTime
-  usado      Boolean     @default(false)
-  carrinhos  Carrinho[]  // Carrinhos que usaram esse cupom (opcional)
+  id        Int          @id @default(autoincrement())
+  codigo    String       @unique
+  tipo      TipoDesconto
+  valor     Float
+  expiracao DateTime
+  usado     Boolean      @default(false)
+  carrinhos Carrinho[] // Carrinhos que usaram esse cupom (opcional)
 
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum TipoDesconto {
