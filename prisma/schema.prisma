@@ -4,8 +4,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://postgres:cTQFt5T86kFmvCE@@db.tbusedmcbhcawogwdqcn.supabase.co:5432/postgres?sslmode=require"
+  url      = env("DATABASE_URL")
 }
+
 
 model User {
   id         Int      @id @default(autoincrement())
