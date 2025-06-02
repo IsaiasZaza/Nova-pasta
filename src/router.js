@@ -20,15 +20,15 @@ const router = express.Router();
 
 // Registrar novo usuário
 router.post('/register', async (req, res) => {
-    const { name, email, cpf, phone, cep, street, number, complement, Senha } = req.body;
-    const { status, data } = await createUser({ name, email, cpf, phone, cep, street, number, complement, Senha });
+    const { name, email, cpf, phone, cep, street, number, complement, senha } = req.body;
+    const { status, data } = await createUser({ name, email, cpf, phone, cep, street, number, complement, senha });
     res.status(status).json(data);
 });
 
 // Login
 router.post('/login', async (req, res) => {
-    const { email, Senha } = req.body;
-    const { status, data } = await loginUser({ email, Senha });
+    const { email, senha } = req.body;
+    const { status, data } = await loginUser({ email, senha });
     res.status(status).json(data);
 });
 

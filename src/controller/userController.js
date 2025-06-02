@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 const { ERROR_MESSAGES, HTTP_STATUS_CODES, SUCCESS_MESSAGES } = require('../utils/enum');
 
 
-const createUser = async ({ name, email, Senha, cpf, phone, cep, street, number, complement }) => {
+const createUser = async ({ name, email, senha, cpf, phone, cep, street, number, complement }) => {
     try {
 
         const cpfRegex = /^\d{11}$/;
@@ -29,7 +29,7 @@ const createUser = async ({ name, email, Senha, cpf, phone, cep, street, number,
             data: {
                 name,
                 email,
-                Senha,
+                senha,
                 cpf,
                 phone,
                 cep,
