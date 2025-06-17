@@ -3,39 +3,18 @@ const prisma = new PrismaClient();
 const { ERROR_MESSAGES, HTTP_STATUS_CODES, SUCCESS_MESSAGES } = require('../utils/enum');
 
 
-const createUser = async ({ name, email, senha, cpf, phone, cep, street, number, complement }) => {
+const createUser = async ({ name, email, senha, phone, nascimento, cep, endereco }) => {
     try {
-
-        const cpfRegex = /^\d{11}$/;
-        if (!cpfRegex.test(cpf)) {
-            return {
-                status: HTTP_STATUS_CODES.BAD_REQUEST,
-                data: { message: "O CPF deve ser valido" },
-            };
-        }
-
-        const existingUser = await prisma.user.findUnique({
-            where: { cpf },
-        });
-
-        if (existingUser) {
-            return {
-                status: HTTP_STATUS_CODES.CONFLICT,
-                data: { message: "Já existe um usuário cadastrado com este CPF." },
-            };
-        }
 
         const user = await prisma.user.create({
             data: {
                 name,
                 email,
-                senha,
-                cpf,
-                phone,
-                cep,
-                street,
-                number,
-                complement
+                senha,            
+                phone,             
+                nascimento,
+                cep: "Coloque seu CEP aqui", // TODO: Implementar lógica para buscar o CEP
+                endereco: "Coloque seu endereço aqui", // TODO: Implementar lógica para buscar o endereço
             }
         });
 
@@ -46,12 +25,10 @@ const createUser = async ({ name, email, senha, cpf, phone, cep, street, number,
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                cpf: user.cpf,
-                phone: user.phone,
+                phone: user.phone,  
+                complement: user.complement,
                 cep: user.cep,
-                street: user.street,
-                number: user.number,
-                complement: user.complement
+                endereco: user.endereco,
             }
         }
     } catch (error) {
@@ -79,46 +56,78 @@ const getUsers = async () => {
     }
 }
 
-const loginUser = async ({ email, Senha }) => {
-    try {
-        const user = await prisma.user.findUnique({
-            where: { email }
-        });
+const loginUser = async ({ email, senha }) => {
+  try {
+    // Verifica se é um usuário comum
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
 
-        if (!user) {
-            return {
-                status: HTTP_STATUS_CODES.NOT_FOUND,
-                data: { message: "Usuário não encontrado" },
-            };
-        }
-
-        if (user.Senha !== Senha) {
-            return {
-                status: HTTP_STATUS_CODES.UNAUTHORIZED,
-                data: { message: "Senha incorreta" },
-            };
-        }
-
+    if (user) {
+      if (user.senha !== senha) {
         return {
-            message: "Login realizado com sucesso",
-            status: HTTP_STATUS_CODES.OK,
-            data: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                cpf: user.cpf,
-                phone: user.phone,
-                cep: user.cep,
-                street: user.street,
-                number: user.number,
-                complement: user.complement
-            }
-        }
-    } catch (error) {
-        console.error('Erro ao realizar login:', error);
-        throw error;
+          status: HTTP_STATUS_CODES.UNAUTHORIZED,
+          data: { message: "Senha incorreta" },
+        };
+      }
+
+      return {
+        status: HTTP_STATUS_CODES.OK,
+        message: "Login realizado com sucesso",
+        data: {
+          tipo: 'user',
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          nascimento: user.nascimento,
+          cep: user.cep,
+          endereco: user.endereco,
+        },
+      };
     }
-}
+
+    // Verifica se é um vendedor
+    const vendedor = await prisma.vendedor.findUnique({
+      where: { email },
+    });
+
+    if (vendedor) {
+      if (vendedor.senha !== senha) {
+        return {
+          status: HTTP_STATUS_CODES.UNAUTHORIZED,
+          data: { message: "Senha incorreta" },
+        };
+      }
+
+      return {
+        status: HTTP_STATUS_CODES.OK,
+        message: "Login realizado com sucesso",
+        data: {
+          tipo: 'vendedor',
+          id: vendedor.id,
+          nomeNegocio: vendedor.nomeNegocio,
+          email: vendedor.email,
+          cnpj: vendedor.cnpj,
+          contato: vendedor.contato,
+          cep: vendedor.cep,
+          logradouro: vendedor.logradouro,
+          numero: vendedor.numero,
+          complemento: vendedor.complemento,
+        },
+      };
+    }
+
+    return {
+      status: HTTP_STATUS_CODES.NOT_FOUND,
+      data: { message: "E-mail não encontrado" },
+    };
+  } catch (error) {
+    console.error('Erro ao realizar login:', error);
+    throw error;
+  }
+};
+
 
 const getUserById = async (id) => {
     try {
@@ -142,6 +151,44 @@ const getUserById = async (id) => {
         throw error;
     }
 };
+
+
+const getProdutosByVendedorId = async (vendedorId) => {
+  try {
+    const id = Number(vendedorId);
+    if (isNaN(id)) {
+      return {
+        status: 400,
+        data: { message: "vendedorId deve ser um número válido" },
+      };
+    }
+
+    const produtos = await prisma.produto.findMany({
+      where: { vendedorId: id },
+    });
+
+    if (!produtos || produtos.length === 0) {
+      return {
+        status: 404,
+        data: { message: "Nenhum produto encontrado para este vendedor" },
+      };
+    }
+
+    return {
+      status: 200,
+      data: produtos,
+    };
+  } catch (error) {
+    console.error('Erro ao buscar produtos por vendedor ID:', error);
+    return {
+      status: 500,
+      data: { message: "Erro interno do servidor" },
+    };
+  }
+};
+
+
+
 
 const updateUser = async (id, userData) => {
     try {
@@ -200,11 +247,13 @@ const deleteUser = async (id) => {
 };
 
 
+
 module.exports = {
     createUser,
     loginUser,
     getUsers,
     getUserById,
     updateUser,
-    deleteUser
+    deleteUser,
+    getProdutosByVendedorId
 };

@@ -4,14 +4,15 @@ const {
     getUsers,
     getUserById,
     updateUser,
-    deleteUser
+    deleteUser,
+    getProdutosByVendedorId
 } = require('./controller/userController');
 const {
     createProduto,
     getProdutos,
     getProdutoById,
     updateProduto,
-    deleteProduto
+    deleteProduto,
 } = require('./controller/produtoController');
 
 const {
@@ -21,16 +22,25 @@ const {
     validarCupom
 } = require('./controller/cupomController');
 
+const {
+    createVendedor,
+    loginVendedor,
+    getVendedorById,
+    getVendedores
+} = require('./controller/vendedorController');
+
 
 const express = require('express');
 const router = express.Router();
 
 // Registrar novo usuário
 router.post('/register', async (req, res) => {
-    const { name, email, cpf, phone, cep, street, number, complement, senha } = req.body;
-    const { status, data } = await createUser({ name, email, cpf, phone, cep, street, number, complement, senha });
+    const { name, email, cpf, phone, street, number, complement, senha, cep, endereco } = req.body;
+    const { status, data } = await createUser({ name, email, cpf, phone, cep, street, number, complement, senha, cep, endereco });
     res.status(status).json(data);
 });
+
+
 
 // Login
 router.post('/login', async (req, res) => {
@@ -38,6 +48,19 @@ router.post('/login', async (req, res) => {
     const { status, data } = await loginUser({ email, senha });
     res.status(status).json(data);
 });
+
+router.post('/vendedor/register', async (req, res) => {
+    const { nomeNegocio, cnpj, email, senha, cep, numero, complemento, contato, logradouro } = req.body;
+    const { status, data } = await createVendedor({ nomeNegocio, cnpj, email, senha, cep, numero, complemento, contato, logradouro });
+    res.status(status).json(data);
+});
+
+router.post('/vendedor/login', async (req, res) => {
+    const { email, senha } = req.body;
+    const { status, data } = await loginVendedor({ email, senha });
+    res.status(status).json(data);
+});
+
 
 // Listar todos os usuários
 router.get('/users', async (req, res) => {
@@ -85,8 +108,8 @@ router.delete('/users/:id', async (req, res) => {
 
 router.post('/products', async (req, res) => {
     try {
-        const { nome, quantidade, image, price } = req.body;
-        const { status, data, message } = await createProduto({ nome, quantidade, image, price });
+        const { nome, quantidade, image, price, vendedorId } = req.body;
+        const { status, data, message } = await createProduto({ nome, quantidade, image, price, vendedorId });
         res.status(status).json({ message, data });
     } catch (error) {
         console.error('Erro ao criar produto:', error);
@@ -95,6 +118,22 @@ router.post('/products', async (req, res) => {
 })
 
 // Listar todas as frutas
+router.get('/products/:vendedorId', async (req, res) => {
+    try {
+        const vendedorId = req.params.vendedorId;
+
+        if (!vendedorId) {
+            return res.status(400).json({ message: 'vendedorId é obrigatório na rota.' });
+        }
+
+        const { status, data } = await getProdutosByVendedorId(vendedorId);
+        return res.status(status).json({ data });
+    } catch (error) {
+        console.error('Erro ao buscar produtos:', error);
+        return res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+});
+
 router.get('/products', async (req, res) => {
     try {
         const { status, data } = await getProdutos();
@@ -105,11 +144,26 @@ router.get('/products', async (req, res) => {
     }
 });
 
-// Buscar fruta por ID
-router.get('/products/:id', async (req, res) => {
-    const { id } = req.params;
-    const { status, data } = await getProdutoById({ id });
-    return res.status(status).json(data);
+router.get('/vendedores', async (req, res) => {
+    try {
+        const { status, data } = await getVendedores();
+        res.status(status).json(data);
+
+    } catch (error) {
+        console.error('Erro ao buscar vendedores:', error);
+        res.status(500).json({ message: 'Erro interno do servidor' });
+    }
+});
+
+router.get('/products/vendedor/:vendedorId', async (req, res) => {
+    const { vendedorId } = req.params;
+    try {
+        const { status, data } = await getVendedorById({ vendedorId });
+        res.status(status).json(data);
+    } catch (error) {
+        console.error('Erro ao buscar produtos por vendedor ID:', error);
+        res.status(500).json({ message: 'Erro interno do servidor' });
+    }
 });
 
 // Atualizar fruta
@@ -123,7 +177,8 @@ router.put('/products/:id', async (req, res) => {
 // Deletar fruta
 router.delete('/products/:id', async (req, res) => {
     try {
-        const { status, message } = await deleteProduto(req.params.id);
+        const { id } = req.params;
+        const { status, message } = await deleteProduto({ id });
         res.status(status).json({ message });
     } catch (error) {
         console.error('Erro ao deletar produto:', error);
