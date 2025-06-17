@@ -2,6 +2,52 @@
 CREATE TYPE "TipoDesconto" AS ENUM ('PORCENTAGEM', 'VALOR_FIXO');
 
 -- CreateTable
+CREATE TABLE "User" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "senha" TEXT NOT NULL,
+    "cep" TEXT NOT NULL,
+    "endereco" TEXT NOT NULL,
+    "phone" TEXT,
+    "email" TEXT NOT NULL,
+    "nascimento" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Vendedor" (
+    "id" SERIAL NOT NULL,
+    "nomeNegocio" TEXT NOT NULL,
+    "cnpj" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "senha" TEXT NOT NULL,
+    "cep" TEXT NOT NULL,
+    "logradouro" TEXT NOT NULL,
+    "numero" TEXT NOT NULL,
+    "complemento" TEXT,
+    "contato" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Vendedor_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Produto" (
+    "id" SERIAL NOT NULL,
+    "nome" TEXT NOT NULL,
+    "price" DOUBLE PRECISION NOT NULL,
+    "quantidade" INTEGER NOT NULL,
+    "image" TEXT,
+    "vendedorId" INTEGER NOT NULL,
+
+    CONSTRAINT "Produto_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Carrinho" (
     "id" SERIAL NOT NULL,
     "userId" INTEGER NOT NULL,
@@ -37,7 +83,19 @@ CREATE TABLE "Cupom" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Vendedor_cnpj_key" ON "Vendedor"("cnpj");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Vendedor_email_key" ON "Vendedor"("email");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Cupom_codigo_key" ON "Cupom"("codigo");
+
+-- AddForeignKey
+ALTER TABLE "Produto" ADD CONSTRAINT "Produto_vendedorId_fkey" FOREIGN KEY ("vendedorId") REFERENCES "Vendedor"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Carrinho" ADD CONSTRAINT "Carrinho_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
