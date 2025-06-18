@@ -4,39 +4,25 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://neondb_owner:npg_NfLejd9WHbr4@ep-noisy-wave-a828dheg-pooler.eastus2.azure.neon.tech/neondb?sslmode=require"
+  url      = "postgresql://eae_owner:npg_AEg2D3CZWkGI@ep-small-moon-a8qcu1xr-pooler.eastus2.azure.neon.tech/eae?sslmode=require"
 }
+
 
 model User {
   id         Int      @id @default(autoincrement())
   name       String
   senha      String
-  cep        String
-  endereco   String
-  phone      String?
+  cpf        String   @unique
+  phone      String
   email      String   @unique
-  nascimento String?
+  cep        String
+  street     String
+  number     String
+  complement String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   carrinhos Carrinho[]
-}
-
-model Vendedor {
-  id          Int      @id @default(autoincrement())
-  nomeNegocio String
-  cnpj        String   @unique
-  email       String   @unique
-  senha       String
-  cep         String
-  logradouro  String
-  numero      String
-  complemento String?
-  contato     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  produtos Produto[] // <-- relação automática (1 vendedor tem vários produtos)
 }
 
 model Produto {
@@ -45,9 +31,6 @@ model Produto {
   price      Float
   quantidade Int
   image      String?
-
-  vendedorId Int
-  vendedor   Vendedor @relation(fields: [vendedorId], references: [id])
 
   cartItems CartItem[]
 }

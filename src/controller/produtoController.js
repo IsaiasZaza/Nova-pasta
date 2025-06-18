@@ -2,13 +2,12 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const { HTTP_STATUS_CODES } = require('../utils/enum');
 
-// Criar produto
-const createProduto = async ({ nome, quantidade, image, price, vendedorId }) => {
+const createProduto = async ({ nome, quantidade, image, price }) => {
     try {
-        if (!nome || typeof quantidade !== 'number' || !vendedorId) {
+        if (!nome || typeof quantidade !== 'number') {
             return {
                 status: HTTP_STATUS_CODES.BAD_REQUEST,
-                data: { message: "Nome, quantidade e vendedorId são obrigatórios" },
+                data: { message: "Nome e quantidade são obrigatórios" },
             };
         }
 
@@ -17,8 +16,7 @@ const createProduto = async ({ nome, quantidade, image, price, vendedorId }) => 
                 nome,
                 quantidade,
                 image,
-                price,
-                vendedorId
+                price
             }
         });
 
@@ -33,22 +31,15 @@ const createProduto = async ({ nome, quantidade, image, price, vendedorId }) => 
     }
 };
 
-// Buscar todos os produtos (pode filtrar por vendedor)
-const getProdutos = async ({ vendedorId = null } = {}) => {
+const getProdutos = async () => {
     try {
-        const whereClause = vendedorId ? { vendedorId: Number(vendedorId) } : {};
-
-        const produtos = await prisma.produto.findMany({
-            where: whereClause
-        });
-
+        const produtos = await prisma.produto.findMany();
         if (produtos.length === 0) {
             return {
                 status: HTTP_STATUS_CODES.NOT_FOUND,
                 data: { message: "Nenhum produto encontrado" },
             };
         }
-
         return {
             status: HTTP_STATUS_CODES.OK,
             data: produtos
@@ -59,7 +50,6 @@ const getProdutos = async ({ vendedorId = null } = {}) => {
     }
 };
 
-// Buscar produto por ID
 const getProdutoById = async ({ id }) => {
     try {
         const produto = await prisma.produto.findUnique({
@@ -83,21 +73,9 @@ const getProdutoById = async ({ id }) => {
     }
 };
 
-// Atualizar produto (verifica se o vendedor é dono do produto)
-const updateProduto = async ({ id, nome, quantidade, vendedorId }) => {
+const updateProduto = async ({ nome, quantidade, id }) => {
     try {
-        const produto = await prisma.produto.findUnique({
-            where: { id: Number(id) }
-        });
-
-        if (!produto) {
-            return {
-                status: HTTP_STATUS_CODES.NOT_FOUND,
-                data: { message: "Produto não encontrado" },
-            };
-        }
-
-        const updatedProduto = await prisma.produto.update({
+        const produto = await prisma.produto.update({
             where: { id: Number(id) },
             data: { nome, quantidade }
         });
@@ -105,7 +83,7 @@ const updateProduto = async ({ id, nome, quantidade, vendedorId }) => {
         return {
             status: HTTP_STATUS_CODES.OK,
             message: "Produto atualizado com sucesso",
-            data: updatedProduto
+            data: produto
         };
     } catch (error) {
         console.error('Erro ao atualizar produto:', error);
@@ -113,22 +91,8 @@ const updateProduto = async ({ id, nome, quantidade, vendedorId }) => {
     }
 };
 
-// Deletar produto (verifica se o vendedor é dono do produto)
 const deleteProduto = async ({ id }) => {
     try {
-        const produto = await prisma.produto.findUnique({
-            where: { id: Number(id) }
-        });
-
-        if (!produto) {
-            return {
-                status: HTTP_STATUS_CODES.NOT_FOUND,
-                data: { message: "Produto não encontrado" },
-            };
-        }
-
-    
-
         await prisma.produto.delete({
             where: { id: Number(id) }
         });
